@@ -32,15 +32,37 @@ const Register = () => {
     setLoading(true);
 
     try {
+      // Basic validation
+      if (!form.name || !form.email || !form.password) {
+        throw new Error('Please fill in all fields');
+      }
+      
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        throw new Error('Please enter a valid email address');
+      }
+      
+      if (form.password.length < 6) {
+        throw new Error('Password must be at least 6 characters long');
+      }
+
+      console.log('Attempting to register user...');
       const response = await registerUser(form);
       
       if (response.error) {
         throw new Error(response.error);
       }
       
-      // Redirect to login after successful registration
-      navigate('/login');
+      console.log('Registration successful, redirecting to login...');
+      // Show success message before redirect
+      setError('Registration successful! Redirecting to login...');
+      
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        navigate('/login', { state: { registrationSuccess: true } });
+      }, 1500);
+      
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Box,
@@ -13,19 +13,30 @@ import {
   IconButton
 } from '@mui/material';
 import { useUser } from '../context/UserContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const Login = () => {
   const { login } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Check for registration success state
+  useEffect(() => {
+    if (location.state?.registrationSuccess) {
+      setSuccess('Registration successful! Please log in with your credentials.');
+      // Clear the state to prevent showing the message on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,23 +78,33 @@ const Login = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-          <Typography component="h1" variant="h4" align="center" gutterBottom sx={{ color: 'black' }}>
-            Welcome Back
+    <Container component="main" maxWidth="xs">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Paper elevation={3} sx={{ p: 4, width: '100%', borderRadius: 2 }}>
+          <Typography component="h1" variant="h5" align="center" sx={{ mb: 3 }}>
+            Sign in
           </Typography>
-          <Typography variant="h6" align="center" color="text.secondary" paragraph sx={{ color: 'black' }}>
-            Sign in to your account
-          </Typography>
+          
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
+          
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2, color: 'black' }}>
-                {error}
-              </Alert>
-            )}
-
             <TextField sx={{ input: { color: 'black' } }}
               margin="normal"
               required
