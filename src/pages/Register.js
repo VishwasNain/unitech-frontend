@@ -1,77 +1,45 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Link,
+  Box, 
+  Typography, 
+  TextField, 
+  Button, 
+  Link, 
   Alert,
-  CircularProgress,
-  Paper,
-  Divider,
-  IconButton
+  Paper
 } from '@mui/material';
-import { useUser } from '../context/UserContext';
-import { useNavigate } from 'react-router-dom';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { registerUser } from '../api/api';
 
 const Register = () => {
-  const { register } = useUser();
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
-
-    // Validate form
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all fields');
-      setLoading(false);
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
     try {
-      const result = await register(formData.name, formData.email, formData.password, formData.mobile);
-      if (result.success) {
-        navigate('/login');
-      } else {
-        setError(result.message || 'Registration failed. Please try again.');
+      const response = await registerUser(form);
+      
+      if (response.error) {
+        throw new Error(response.error);
       }
+      
+      // Redirect to login after successful registration
+      navigate('/login');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
@@ -83,21 +51,21 @@ const Register = () => {
     <Container maxWidth="sm">
       <Box sx={{ mt: 8, mb: 4 }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-          <Typography component="h1" variant="h4" align="center" gutterBottom sx={{ color: 'black' }}>
+          <Typography component="h1" variant="h4" align="center" gutterBottom>
             Create Account
           </Typography>
-          <Typography variant="h6" align="center" color="text.secondary" paragraph sx={{ color: 'black' }}>
+          <Typography variant="h6" align="center" color="text.secondary" paragraph>
             Get started with Unitech Computers
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
             {error && (
-              <Alert severity="error" sx={{ mb: 2, color: 'black' }}>
+              <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
               </Alert>
             )}
 
-            <TextField sx={{ input: { color: 'black' } }}
+            <TextField
               margin="normal"
               required
               fullWidth
@@ -106,95 +74,49 @@ const Register = () => {
               name="name"
               autoComplete="name"
               autoFocus
-              value={formData.name}
+              value={form.name}
               onChange={handleChange}
-              error={error && error.includes('name')}
-              helperText={error && error.includes('name') ? error : ''}
             />
             
-            <TextField sx={{ input: { color: 'black' } }}
+            <TextField
               margin="normal"
               required
               fullWidth
               id="email"
               label="Email Address"
               name="email"
+              type="email"
               autoComplete="email"
-              value={formData.email}
+              value={form.email}
               onChange={handleChange}
-              error={error && error.includes('email')}
-              helperText={error && error.includes('email') ? error : ''}
             />
             
-            <TextField sx={{ input: { color: 'black' } }}
+            <TextField
               margin="normal"
               required
               fullWidth
               name="password"
               label="Password"
-              type={showPassword ? 'text' : 'password'}
+              type="password"
               id="password"
               autoComplete="new-password"
-              value={formData.password}
+              value={form.password}
               onChange={handleChange}
-              error={error && error.includes('password')}
-              helperText={error && error.includes('password') ? error : ''}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                )
-              }}
-            />
-            
-            <TextField sx={{ input: { color: 'black' } }}
-              margin="normal"
-              required
-              fullWidth
-              name="confirmPassword"
-              label="Confirm Password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              id="confirmPassword"
-              autoComplete="new-password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              error={error && error.includes('password')}
-              helperText={error && error.includes('password') ? error : ''}
-              InputProps={{
-                endAdornment: (
-                  <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    edge="end"
-                  >
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                )
-              }}
             />
             
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2, color: 'black' }}
-              disabled={loading || !formData.name || !formData.email || !formData.password || !formData.confirmPassword}
+              sx={{ mt: 3, mb: 2 }}
+              disabled={loading || !form.name || !form.email || !form.password}
             >
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Create Account'
-              )}
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
 
-            <Divider sx={{ my: 2 }} />
-
-            <Typography align="center" sx={{ color: 'black' }}>
+            <Typography align="center">
               Already have an account?{' '}
-              <Link href="/login" variant="body2" sx={{ color: 'black' }}>
+              <Link href="/login" variant="body2">
                 Sign In
               </Link>
             </Typography>
