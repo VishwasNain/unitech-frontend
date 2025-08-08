@@ -17,7 +17,10 @@ import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import { UserProvider } from './context/UserContext';
 import { CartProvider } from './context/CartContext';
-
+import SendOTP from './components/Auth/SendOTP';
+import VerifyOTP from './components/Auth/VerifyOTP';
+import Order from './components/Order/Order';
+import cart from './components/cart/Cart';
 function App() {
   return (
     <ThemeProvider theme={theme}>
